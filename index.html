@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registro de análisis</title>
+<link rel="icon" href="img/logo.png">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<!-- Pantalla de carga -->
+<div id="carga" class="hoja">
+  <header class="banda-superior">
+    <img class="logo" src="img/logo.png" alt="Logo">
+    <div class="titulo">
+      <h1>PROCESADOR DE TABLAS</h1>
+      <p>LABORATORIO CONTROL DE CALIDAD</p>
+    </div>
+  </header>
+  <section>
+    <label id="zona" class="zona-arrastre" tabindex="0">
+      <input id="archivo" type="file" multiple accept=".csv,.tsv,.txt,.html,.htm,.xlsx,.xlsm,.xls,.ods">
+      <strong>Arrastra aquí tus archivos</strong>
+      <span>o haz clic para seleccionarlos</span>
+      <small>CSV · HTML · Excel (.xlsx, .xls)</small>
+    </label>
+    <p id="error" class="error" role="alert" hidden></p>
+    <p class="nota">Los archivos se procesan en tu navegador y no se suben a ningún servidor.</p>
+  </section>
+  <footer class="banda-inferior"><p>&nbsp;</p></footer>
+  <p class="empresa">TABLAS, TALLER AGRICOLA S. DE R.L. DE C.V.<br>WWW.TABLAS.COM.MX</p>
+</div>
+
+<!-- Reporte generado -->
+<div id="reporte" hidden>
+  <nav class="barra no-imprimir">
+    <button id="btn-nuevo" type="button">← Cargar otro archivo</button>
+    <span class="ayuda">Puedes editar el título, la fecha, la nota y los nombres de firma antes de descargar.</span>
+    <button id="btn-pdf" type="button" class="primario">Descargar PDF</button>
+  </nav>
+
+  <div class="hoja">
+    <header class="banda-superior">
+      <img class="logo" src="img/logo.png" alt="Logo">
+      <div class="titulo">
+        <h1 contenteditable="true" spellcheck="false">REGISTRO DE ANÁLISIS</h1>
+        <p>LABORATORIO CONTROL DE CALIDAD</p>
+      </div>
+      <table class="datos-registro">
+        <tr><th>Fecha:</th><td id="fecha" contenteditable="true"></td></tr>
+        <tr><th>Generado:</th><td id="generado"></td></tr>
+      </table>
+    </header>
+
+    <section>
+      <h2 class="seccion">1-Resumen</h2>
+      <dl id="ficha" class="ficha"></dl>
+    </section>
+
+    <div id="tablas"></div>
+
+    <section class="firmas">
+      <div><span>Elaborado por:</span><div class="linea-firma"></div><p contenteditable="true" class="nombre-firma"></p></div>
+      <div><span>Aprobado por:</span><div class="linea-firma"></div><p contenteditable="true" class="nombre-firma"></p></div>
+    </section>
+
+    <footer class="banda-inferior">
+      <p contenteditable="true">"—" = sin dato.</p>
+    </footer>
+    <p class="empresa">TABLAS, TALLER AGRICOLA S. DE R.L. DE C.V.<br>WWW.TABLAS.COM.MX</p>
+  </div>
+</div>
+
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

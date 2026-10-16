@@ -1,0 +1,208 @@
+/* Estilo basado en "Formato análisis vino e ingredientes_TTA.xlsx"
+   (colores del tema de Excel, tipografías y estructura de la hoja) */
+
+:root {
+  --verde-oscuro: #003D11;   /* Énfasis 5: bandas superior e inferior */
+  --verde: #007B3B;          /* Énfasis 6: títulos de sección */
+  --gris-fila: #F2F2F2;      /* Blanco oscurecido 5%: filas alternas y encabezados */
+  --gris-texto: #5F5F5F;
+  --gris-vacio: #B2B2B2;
+  --borde: #000000;
+  --blanco: #FFFFFF;
+  --texto: #000000;
+  --error: #B42318;
+  --fuente-titulos: "Simplon Mono", "Consolas", "Courier New", monospace;
+  --fuente-cuerpo: "Aptos", "Segoe UI", Calibri, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  padding: 24px 16px;
+  background: #E8E8E8;
+  color: var(--texto);
+  font-family: var(--fuente-cuerpo);
+  font-size: 11pt;
+}
+
+/* Página tipo hoja de Excel */
+.hoja {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--blanco);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .12);
+}
+#carga.hoja { max-width: 760px; }
+
+/* ---- Banda superior ---- */
+.banda-superior {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 24px;
+  background: var(--verde-oscuro);
+  color: var(--blanco);
+}
+.logo { width: 72px; height: 72px; object-fit: contain; flex-shrink: 0; }
+.titulo { flex: 1; text-align: center; font-family: var(--fuente-titulos); }
+.banda-superior .datos-registro { margin-left: 0; }
+.titulo:not(:last-child) { border-right: 1px solid var(--blanco); padding-right: 24px; }
+.titulo h1 { margin: 0 0 6px; font-size: 16pt; font-weight: 400; letter-spacing: .04em; }
+.titulo p  { margin: 0; font-size: 11pt; }
+
+.datos-registro { border-collapse: collapse; color: var(--blanco); }
+.datos-registro th, .datos-registro td {
+  border: 1px solid var(--blanco);
+  padding: 4px 10px;
+  font-weight: 400;
+  text-align: left;
+}
+.datos-registro td { text-align: center; min-width: 120px; }
+
+[contenteditable="true"] { outline: none; border-radius: 2px; }
+[contenteditable="true"]:hover { box-shadow: 0 0 0 1px currentColor; }
+[contenteditable="true"]:focus { box-shadow: 0 0 0 2px var(--verde); }
+
+/* ---- Secciones ---- */
+section { padding: 0 24px; }
+
+.seccion {
+  margin: 24px 0 12px;
+  font-family: var(--fuente-titulos);
+  font-size: 12pt;
+  font-weight: 700;
+  color: var(--verde);
+}
+
+/* ---- Zona de arrastre ---- */
+.zona-arrastre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 32px 0 12px;
+  padding: 48px 16px;
+  border: 2px dashed var(--verde);
+  background: var(--gris-fila);
+  text-align: center;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.zona-arrastre:hover, .zona-arrastre:focus-visible, .zona-arrastre.activa {
+  background: #E3F1E8;
+  border-color: var(--verde-oscuro);
+  outline: none;
+}
+.zona-arrastre input { display: none; }
+.zona-arrastre strong { font-family: var(--fuente-titulos); font-size: 14pt; color: var(--verde-oscuro); }
+.zona-arrastre span { color: var(--gris-texto); }
+.zona-arrastre small { color: var(--gris-texto); font-size: 9pt; letter-spacing: .05em; }
+
+.error { margin: 0 0 12px; padding: 8px 12px; border-left: 4px solid var(--error); background: #FDECEA; color: var(--error); }
+.nota { margin: 0 0 32px; font-size: 9pt; color: var(--gris-texto); text-align: center; }
+
+/* ---- Barra de acciones ---- */
+.barra {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  max-width: 1200px;
+  margin: -24px auto 16px;
+  padding: 12px 0;
+  background: #E8E8E8;
+}
+.ayuda { flex: 1; font-size: 9pt; color: var(--gris-texto); }
+.barra button {
+  font: inherit;
+  padding: 8px 16px;
+  border: 1px solid var(--verde-oscuro);
+  background: var(--blanco);
+  color: var(--verde-oscuro);
+  cursor: pointer;
+}
+.barra button.primario { background: var(--verde-oscuro); color: var(--blanco); font-weight: 600; }
+.barra button:hover { filter: brightness(1.15); }
+.barra button:disabled { opacity: .6; cursor: wait; }
+
+/* ---- Bloque resumen ---- */
+.ficha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 4px;
+  margin: 0;
+}
+.ficha > div { display: flex; align-items: center; min-height: 27px; background: var(--gris-fila); }
+.ficha dt {
+  width: 40%;
+  padding: 4px 10px;
+  text-align: right;
+  font-weight: 700;
+  border-right: 1px solid var(--borde);
+}
+.ficha dd { flex: 1; margin: 0; padding: 4px 10px; overflow-wrap: anywhere; }
+
+/* ---- Tablas de datos ---- */
+.tabla-contenedor { overflow-x: auto; }
+
+.resultados {
+  width: 100%;
+  border-collapse: collapse;
+  border-top: 1px solid var(--borde);
+  border-bottom: 1px solid var(--borde);
+}
+.resultados th, .resultados td {
+  padding: 6px 10px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+  border-right: 1px solid var(--borde);
+}
+.resultados th:last-child, .resultados td:last-child { border-right: none; }
+
+.resultados thead th {
+  position: sticky; top: 0;
+  background: var(--gris-fila);
+  font-weight: 700;
+  border-bottom: 1px solid var(--borde);
+}
+.metodo { display: block; font-size: 9pt; font-weight: 400; color: var(--gris-texto); }
+
+.resultados tbody th { font-weight: 700; }
+.resultados tbody tr:nth-child(even) { background: var(--gris-fila); }
+.resultados td { font-variant-numeric: tabular-nums; }
+.resultados td.vacio { color: var(--gris-vacio); }
+
+.resultados th:first-child { position: sticky; left: 0; z-index: 1; background: var(--blanco); }
+.resultados tbody tr:nth-child(even) th:first-child,
+.resultados thead th:first-child { background: var(--gris-fila); }
+.resultados thead th:first-child { z-index: 2; }
+
+/* ---- Firmas ---- */
+.firmas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  margin: 48px 0 24px;
+  text-align: center;
+}
+.linea-firma { height: 48px; border-bottom: 1px solid var(--borde); margin-top: 8px; }
+.nombre-firma { min-height: 1.4em; margin: 6px 0 0; font-weight: 700; }
+
+/* ---- Banda inferior y empresa ---- */
+.banda-inferior { background: var(--verde-oscuro); color: var(--blanco); padding: 8px 24px; font-size: 9pt; }
+.banda-inferior p { margin: 0; }
+
+.empresa {
+  margin: 0;
+  padding: 8px 24px 16px;
+  text-align: right;
+  font-family: var(--fuente-titulos);
+  font-size: 10pt;
+}
+
+@media (max-width: 640px) {
+  .banda-superior { flex-wrap: wrap; justify-content: center; }
+  .titulo:not(:last-child) { border-right: none; padding-right: 0; }
+  .firmas { grid-template-columns: 1fr; }
+}
