@@ -125,6 +125,13 @@ section { padding: 0 24px; }
 .barra button:hover { filter: brightness(1.15); }
 .barra button:disabled { opacity: .6; cursor: wait; }
 
+.casilla input { accent-color: var(--verde); margin: 0; cursor: pointer; }
+
+/* Casilla en la columna Muestra; las filas no seleccionadas se atenúan y no salen en el PDF */
+.casilla { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.resultados tbody tr.excluida > * { color: var(--gris-vacio); }
+.resultados tbody tr.excluida th:first-child { font-weight: 400; text-decoration: line-through; }
+
 /* ---- Bloque resumen ---- */
 .ficha {
   display: grid;
@@ -141,6 +148,31 @@ section { padding: 0 24px; }
   border-right: 1px solid var(--borde);
 }
 .ficha dd { flex: 1; margin: 0; padding: 4px 10px; overflow-wrap: anywhere; }
+
+/* ---- Descripción de la muestra (reporte por etiqueta) ---- */
+.descripcion { grid-template-columns: repeat(2, 1fr); }
+.descripcion > label { display: flex; align-items: center; min-height: 31px; background: var(--gris-fila); }
+.descripcion > label > span {
+  width: 40%;
+  align-self: stretch;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 4px 10px;
+  font-weight: 700;
+  border-right: 1px solid var(--borde);
+}
+.descripcion input, .descripcion select {
+  flex: 1;
+  min-width: 0;
+  margin: 2px 6px;
+  padding: 3px 6px;
+  font: inherit;
+  border: 1px solid transparent;
+  background: transparent;
+}
+.descripcion input:not([readonly]):hover, .descripcion select:hover { border-color: var(--gris-vacio); }
+.descripcion input[readonly] { cursor: default; } /* Tipo (siempre "Vino") y Lote (viene del archivo) */
+.descripcion input:not([readonly]):focus, .descripcion select:focus { outline: none; border-color: var(--verde); background: var(--blanco); }
+
 
 /* ---- Tablas de datos ---- */
 .tabla-contenedor { overflow-x: auto; }
@@ -168,10 +200,11 @@ section { padding: 0 24px; }
 }
 .metodo { display: block; font-size: 9pt; font-weight: 400; color: var(--gris-texto); }
 
-.resultados tbody th { font-weight: 700; }
+.resultados tbody th { font-weight: 700; text-align: left; }
 .resultados tbody tr:nth-child(even) { background: var(--gris-fila); }
 .resultados td { font-variant-numeric: tabular-nums; }
 .resultados td.vacio { color: var(--gris-vacio); }
+.resultados .texto { text-align: left; }
 
 .resultados th:first-child { position: sticky; left: 0; z-index: 1; background: var(--blanco); }
 .resultados tbody tr:nth-child(even) th:first-child,
@@ -181,17 +214,27 @@ section { padding: 0 24px; }
 /* ---- Firmas ---- */
 .firmas {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(0, 420px)); /* una firma queda centrada */
+  justify-content: center;
   gap: 48px;
   margin: 48px 0 24px;
   text-align: center;
 }
+/* Columna editable de observaciones en 2-Análisis */
+.resultados td.observacion { min-width: 220px; white-space: normal; }
+.resultados td.observacion:empty::before { content: "Escribe aquí…"; font-style: italic; color: var(--gris-vacio); }
+
 .linea-firma { height: 48px; border-bottom: 1px solid var(--borde); margin-top: 8px; }
 .nombre-firma { min-height: 1.4em; margin: 6px 0 0; font-weight: 700; }
+/* Texto guía mientras el campo está vacío: solo en pantalla, el PDF lee el texto escrito */
+.nombre-firma:empty::before { content: attr(data-guia); font-weight: 400; font-style: italic; color: var(--gris-vacio); }
 
 /* ---- Banda inferior y empresa ---- */
 .banda-inferior { background: var(--verde-oscuro); color: var(--blanco); padding: 8px 24px; font-size: 9pt; }
 .banda-inferior p { margin: 0; }
+.banda-inferior p + p { margin-top: 2px; }
+/* ¹²³ ya son caracteres volados: el <sup> no debe achicarlos ni subirlos más */
+.marca { font-size: 1em; font-weight: 400; vertical-align: baseline; line-height: 0; margin-left: 1px; }
 
 .empresa {
   margin: 0;
@@ -204,5 +247,8 @@ section { padding: 0 24px; }
 @media (max-width: 640px) {
   .banda-superior { flex-wrap: wrap; justify-content: center; }
   .titulo:not(:last-child) { border-right: none; padding-right: 0; }
-  .firmas { grid-template-columns: 1fr; }
+  .firmas, .descripcion { grid-template-columns: 1fr; }
 }
+
+/* Sin firmas, el reporte general necesita aire antes de la banda inferior */
+#tablas { padding-bottom: 24px; }

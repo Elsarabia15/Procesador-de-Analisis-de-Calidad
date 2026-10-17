@@ -7,8 +7,13 @@ Todo se procesa en el navegador: los archivos **no se suben a ningún servidor**
 ## Uso
 
 1. Abre la página y arrastra uno o varios archivos a la zona verde (o haz clic para elegirlos).
-2. Revisa la vista previa. Puedes editar el título, la fecha, la nota del pie y los nombres de firma.
-3. Pulsa **Descargar PDF**.
+2. Revisa la vista previa. Puedes editar el título, el folio y el nombre de la firma.
+3. El tipo de reporte se elige solo, según el archivo:
+   - **Varias muestras → reporte general**: la tabla completa. Con las casillas de la columna *Muestra* eliges qué muestras salen en el PDF.
+   - **Una sola muestra → reporte por etiqueta (vertical)**: llenas la descripción (nombre del vino desde un menú, cosecha, variedad, fechas de embotellado y de análisis con calendario —la de análisis se prellena con la fecha del nombre del archivo, p. ej. `12,10,26` → 12/10/2026—, No. de muestra; el tipo siempre es *Vino*); el *Lote* se llena solo con el ID de la muestra y no se puede editar (sin la basura final, p. ej. `26113,,,` → `26113`). La tabla queda como PARÁMETRO · VALOR · UNIDAD · OBSERVACIONES; solo las observaciones se pueden escribir (la metodología va en el pie). Abajo va la firma de *Aprobado por*. El PDF sale en hoja vertical.
+4. Pulsa **Descargar PDF**.
+
+Las etiquetas del menú están en `PRODUCTOS` (`js/app.js`); las que se agregan con "Otro…" se recuerdan en ese navegador. Los métodos del BioSystems Y15 (unidad y nota del pie) están en `METODOS`: cada parámetro con datos lleva un número volado y el pie explica solo los métodos que aparecen en el reporte.
 
 | Formato | Qué se extrae |
 |---|---|

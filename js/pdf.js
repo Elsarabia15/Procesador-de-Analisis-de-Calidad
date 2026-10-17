@@ -13,7 +13,7 @@ const COLOR = {
 
 const MARGEN = 12;       // mm
 const ALTO_BANDA = 26;   // banda superior
-const ALTO_PIE = 16;     // banda inferior + empresa
+const LINEA_PIE = 3.4;   // alto de cada línea de notas en la banda inferior
 
 /** Las fuentes estándar de PDF solo cubren Latin-1: se sustituyen caracteres fuera de ese rango. */
 function latin1(texto) {
@@ -61,7 +61,7 @@ function dibujarEncabezado(doc, info, logo) {
   doc.line(x - 6, 5, x - 6, ALTO_BANDA - 5);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  [["Fecha:", info.fecha], ["Generado:", info.generado]].forEach(([etq, valor], i) => {
+  [["Folio:", info.folio], ["Generado:", info.generado]].forEach(([etq, valor], i) => {
     doc.rect(x, y + i * h, 22, h);
     doc.rect(x + 22, y + i * h, 40, h);
     doc.text(etq, x + 2, y + i * h + 4.8);
@@ -69,22 +69,31 @@ function dibujarEncabezado(doc, info, logo) {
   });
 }
 
-function dibujarPie(doc, info, pagina, total) {
+/** Líneas de la banda inferior (notas partidas al ancho disponible) y alto total del pie. */
+function medirPie(doc, notas) {
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  const ancho = doc.internal.pageSize.getWidth() - MARGEN * 2 - 28; // espacio para "Página x de y"
+  const lineas = notas.flatMap((n) => doc.splitTextToSize(latin1(n), ancho));
+  const altoBanda = Math.max(7, 2.6 + lineas.length * LINEA_PIE + 1.4);
+  return { lineas, altoBanda, alto: altoBanda + 9 };
+}
+
+function dibujarPie(doc, pie, pagina, total) {
   const ancho = doc.internal.pageSize.getWidth();
-  const alto = doc.internal.pageSize.getHeight();
-  const y = alto - ALTO_PIE;
+  const y = doc.internal.pageSize.getHeight() - pie.alto;
   doc.setFillColor(...COLOR.verdeOscuro);
-  doc.rect(0, y, ancho, 7, "F");
+  doc.rect(0, y, ancho, pie.altoBanda, "F");
   doc.setTextColor(...COLOR.blanco);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  doc.text(latin1(info.nota), MARGEN, y + 4.6);
+  doc.text(pie.lineas, MARGEN, y + 4.6, { lineHeightFactor: LINEA_PIE / (8 * 0.3528) });
   doc.text(`Página ${pagina} de ${total}`, ancho - MARGEN, y + 4.6, { align: "right" });
 
   doc.setTextColor(...COLOR.negro);
   doc.setFont("courier", "normal");
   doc.setFontSize(8);
-  doc.text(["TABLAS, TALLER AGRICOLA S. DE R.L. DE C.V.", "WWW.TABLAS.COM.MX"], ancho - MARGEN, y + 11, {
+  doc.text(["TABLAS, TALLER AGRICOLA S. DE R.L. DE C.V.", "WWW.TABLAS.COM.MX"], ancho - MARGEN, y + pie.altoBanda + 4, {
     align: "right",
   });
 }
@@ -98,29 +107,39 @@ function tituloSeccion(doc, texto, y) {
 }
 
 /**
- * info: { titulo, subtitulo, fecha, generado, nota, firmas: [nombre, nombre], ficha: [[etq, valor]...] }
- * tablas: [{ nombre, encabezados, cuerpo }] (mismo formato que produce app.js)
+ * info: { titulo, subtitulo, folio, generado, notas: [línea...], firmas?: [{ etiqueta, nombre }] (sin firmas si se omite),
+ *         orientacion?,
+ *         ficha: { titulo, pares: [[etq, valor]...], porFila } }
+ * tablas: [{ nombre, encabezados, cuerpo, estilosColumna?, nota? }] (mismo formato que produce app.js)
  */
 async function generarPDF(info, tablas, vacios, nombreArchivo) {
   const { jsPDF } = window.jspdf;
   const maxColumnas = Math.max(...tablas.map((t) => t.encabezados.length));
-  const doc = new jsPDF({ orientation: maxColumnas > 7 ? "landscape" : "portrait", unit: "mm", format: "letter", compress: true });
+  const doc = new jsPDF({ orientation: info.orientacion ?? (maxColumnas > 7 ? "landscape" : "portrait"), unit: "mm", format: "letter", compress: true });
   const logo = await cargarLogo("img/logo.png");
   const inicioContenido = ALTO_BANDA + 8;
-  const margenTabla = { top: inicioContenido + 2, bottom: ALTO_PIE + 6, left: MARGEN, right: MARGEN };
+  const pie = medirPie(doc, info.notas);
+  const margenTabla = { top: inicioContenido + 2, bottom: pie.alto + 6, left: MARGEN, right: MARGEN };
 
-  // ---- 1-Resumen
-  let y = tituloSeccion(doc, "1-Resumen", inicioContenido);
-  const celdasFicha = info.ficha.flatMap(([etq, valor]) => [
-    { content: latin1(etq), styles: { fontStyle: "bold", halign: "right" } },
-    latin1(valor),
-  ]);
+  // ---- 1-Resumen / 1-Descripción muestra: pares etiqueta-valor, `porFila` pares por renglón
+  let y = tituloSeccion(doc, info.ficha.titulo, inicioContenido);
+  const { pares, porFila } = info.ficha;
+  const filasFicha = [];
+  for (let i = 0; i < pares.length; i += porFila) {
+    const fila = pares.slice(i, i + porFila).flatMap(([etq, valor]) => [
+      { content: latin1(etq), styles: { fontStyle: "bold", halign: "right" } },
+      latin1(valor),
+    ]);
+    while (fila.length < porFila * 2) fila.push("");
+    filasFicha.push(fila);
+  }
   doc.autoTable({
     startY: y,
     margin: margenTabla,
-    body: [celdasFicha],
+    body: filasFicha,
     theme: "plain",
-    styles: { font: "helvetica", fontSize: 9, fillColor: COLOR.grisFila, cellPadding: 2 },
+    // Línea blanca entre celdas: separa los renglones grises como en la vista previa
+    styles: { font: "helvetica", fontSize: 9, fillColor: COLOR.grisFila, cellPadding: 2, lineColor: COLOR.blanco, lineWidth: 0.6 },
   });
   y = doc.lastAutoTable.finalY + 10;
 
@@ -157,7 +176,7 @@ async function generarPDF(info, tablas, vacios, nombreArchivo) {
       },
       headStyles: { fillColor: COLOR.grisFila, fontStyle: "bold" },
       alternateRowStyles: { fillColor: COLOR.grisFila },
-      columnStyles: { 0: { fontStyle: "bold" } },
+      columnStyles: { 0: { fontStyle: "bold", halign: "left" }, ...tabla.estilosColumna },
       didParseCell: (d) => {
         // Las líneas verticales van a la izquierda de cada celda (excepto la primera columna):
         // así el relleno gris de la celda vecina no las tapa.
@@ -170,38 +189,57 @@ async function generarPDF(info, tablas, vacios, nombreArchivo) {
       },
     });
     y = doc.lastAutoTable.finalY + 10;
-  });
 
-  // ---- Firmas (como las filas 27-29 del Excel)
-  const alto = doc.internal.pageSize.getHeight();
-  y -= 4;
-  if (y > alto - margenTabla.bottom - 24) {
-    doc.addPage();
-    y = inicioContenido;
-  }
-  const ancho = doc.internal.pageSize.getWidth();
-  const colAncho = (ancho - MARGEN * 2 - 20) / 2;
-  doc.setTextColor(...COLOR.negro);
-  doc.setDrawColor(...COLOR.negro);
-  doc.setLineWidth(0.3);
-  ["Elaborado por:", "Aprobado por:"].forEach((etq, i) => {
-    const x = MARGEN + i * (colAncho + 20);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(etq, x + colAncho / 2, y + 4, { align: "center" });
-    doc.line(x, y + 16, x + colAncho, y + 16);
-    if (info.firmas[i]) {
-      doc.setFont("helvetica", "bold");
-      doc.text(doc.splitTextToSize(latin1(info.firmas[i]), colAncho), x + colAncho / 2, y + 21, { align: "center" });
+    if (tabla.nota) {
+      const alto = doc.internal.pageSize.getHeight();
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(...COLOR.grisTexto);
+      const lineas = doc.splitTextToSize(latin1(tabla.nota), doc.internal.pageSize.getWidth() - MARGEN * 2);
+      let yNota = doc.lastAutoTable.finalY + 5;
+      if (yNota + lineas.length * 3.5 > alto - margenTabla.bottom) {
+        doc.addPage();
+        yNota = inicioContenido;
+      }
+      doc.text(lineas, MARGEN, yNota);
+      y = yNota + lineas.length * 3.5 + 8;
     }
   });
+
+  // ---- Firmas (como las filas 27-29 del Excel): repartidas en el ancho; si no caben, van a la página siguiente
+  if (info.firmas?.length) {
+    const alto = doc.internal.pageSize.getHeight();
+    y -= 4;
+    if (y > alto - margenTabla.bottom - 24) {
+      doc.addPage();
+      y = inicioContenido;
+    }
+    const ancho = doc.internal.pageSize.getWidth();
+    const colAncho = (ancho - MARGEN * 2 - 20) / 2;
+    const n = info.firmas.length;
+    doc.setTextColor(...COLOR.negro);
+    doc.setDrawColor(...COLOR.negro);
+    doc.setLineWidth(0.3);
+    info.firmas.forEach(({ etiqueta, nombre }, i) => {
+      const centro = MARGEN + ((ancho - MARGEN * 2) * (2 * i + 1)) / (2 * n);
+      const x = centro - colAncho / 2;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(latin1(etiqueta), centro, y + 4, { align: "center" });
+      doc.line(x, y + 16, x + colAncho, y + 16);
+      if (nombre) {
+        doc.setFont("helvetica", "bold");
+        doc.text(doc.splitTextToSize(latin1(nombre), colAncho), centro, y + 21, { align: "center" });
+      }
+    });
+  }
 
   // ---- Encabezado y pie en todas las páginas
   const paginas = doc.internal.getNumberOfPages();
   for (let p = 1; p <= paginas; p++) {
     doc.setPage(p);
     dibujarEncabezado(doc, info, logo);
-    dibujarPie(doc, info, p, paginas);
+    dibujarPie(doc, pie, p, paginas);
   }
 
   doc.save(nombreArchivo);

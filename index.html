@@ -36,7 +36,7 @@
 <div id="reporte" hidden>
   <nav class="barra no-imprimir">
     <button id="btn-nuevo" type="button">← Cargar otro archivo</button>
-    <span class="ayuda">Puedes editar el título, la fecha, la nota y los nombres de firma antes de descargar.</span>
+    <span class="ayuda">Puedes editar el título, el folio y el nombre de la firma antes de descargar.</span>
     <button id="btn-pdf" type="button" class="primario">Descargar PDF</button>
   </nav>
 
@@ -48,26 +48,43 @@
         <p>LABORATORIO CONTROL DE CALIDAD</p>
       </div>
       <table class="datos-registro">
-        <tr><th>Fecha:</th><td id="fecha" contenteditable="true"></td></tr>
+        <tr><th>Folio:</th><td id="folio" contenteditable="true"></td></tr>
         <tr><th>Generado:</th><td id="generado"></td></tr>
       </table>
     </header>
 
-    <section>
+    <section id="sec-resumen">
       <h2 class="seccion">1-Resumen</h2>
       <dl id="ficha" class="ficha"></dl>
     </section>
 
-    <div id="tablas"></div>
-
-    <section class="firmas">
-      <div><span>Elaborado por:</span><div class="linea-firma"></div><p contenteditable="true" class="nombre-firma"></p></div>
-      <div><span>Aprobado por:</span><div class="linea-firma"></div><p contenteditable="true" class="nombre-firma"></p></div>
+    <!-- Solo en el reporte por etiqueta (como "1-Descripción muestra" del Excel) -->
+    <section id="sec-descripcion" hidden>
+      <h2 class="seccion">1-Descripción muestra</h2>
+      <div class="ficha descripcion">
+        <label><span>Nombre del vino:</span>
+          <select id="d-producto"></select>
+          <input id="d-producto-otro" type="text" placeholder="Escribe la etiqueta y pulsa Enter" hidden>
+        </label>
+        <label><span>No. Muestra:</span><input id="d-muestra" type="text"></label>
+        <label><span>Cosecha:</span><input id="d-cosecha" type="text" inputmode="numeric" placeholder="Ej. 2025"></label>
+        <label><span>Tipo:</span><input id="d-tipo" type="text" value="Vino" readonly tabindex="-1"></label>
+        <label><span>Variedad:</span><input id="d-variedad" type="text" placeholder="Ej. Tempranillo, Grenache"></label>
+        <label><span>Lote:</span><input id="d-lote" type="text" readonly tabindex="-1"></label>
+        <label><span>Fecha de embotellado:</span><input id="d-fecha" type="date"></label>
+        <label><span>Fecha de análisis:</span><input id="d-fecha-analisis" type="date"></label>
+      </div>
     </section>
 
-    <footer class="banda-inferior">
-      <p contenteditable="true">"—" = sin dato.</p>
-    </footer>
+    <div id="tablas"></div>
+    <div id="vertical" hidden></div>
+
+    <section id="firmas" class="firmas">
+      <div><span>Aprobado por:</span><div class="linea-firma"></div><p contenteditable="true" class="nombre-firma" data-guia="Escribe aquí nombre y cargo"></p></div>
+    </section>
+
+    <!-- Se llena solo: explica los métodos de los parámetros que salen en el reporte -->
+    <footer id="notas" class="banda-inferior"></footer>
     <p class="empresa">TABLAS, TALLER AGRICOLA S. DE R.L. DE C.V.<br>WWW.TABLAS.COM.MX</p>
   </div>
 </div>
